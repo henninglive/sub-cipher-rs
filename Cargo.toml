@@ -1,0 +1,7 @@
+[package]
+name = "sub-cipher-rs"
+version = "0.1.0"
+authors = ["Henning Ottesen <henning@live.no>"]
+
+[dependencies]
+clap = "2.20.0"
