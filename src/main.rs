@@ -1,4 +1,3 @@
-
 extern crate clap;
 
 use clap::{Arg, App, ArgMatches};
@@ -9,11 +8,6 @@ const PLAIN_PARAM:  &'static str = "plaintext";
 const CIPHER_PARAM: &'static str = "ciphertext";
 const KEY_PARAM:    &'static str = "keyfile";
 const OUT_PARAM:    &'static str = "output";
-
-enum CryptOp<'a> {
-    Encrypt(&'a str),
-    Decrypt(&'a str),
-}
 
 fn parse_arg<'a>() -> ArgMatches<'a> {
     App::new("Substitution Cipher Rust")
@@ -53,7 +47,9 @@ fn parse_arg<'a>() -> ArgMatches<'a> {
         .get_matches()
 }
 
-fn crypt<'a, F>(input: &'a str, output: &'a str, key: &'a str, mut f: F) -> Result<(), (Error, &'a str)> where F: FnMut(&mut u8, &u8) {
+fn crypt<'a, F>(input: &'a str, output: &'a str, key: &'a str, mut f: F) ->
+    Result<(), (Error, &'a str)> where F: FnMut(&mut u8, &u8)
+{
     let mut input_file  = File::open(input).map_err(|e| (e, input))?;
     let mut key_file    = File::open(key).map_err(|e| (e, key))?;
     let mut output_file = File::create(output).map_err(|e| (e, output))?;
@@ -79,9 +75,15 @@ fn main() {
     let key_file = args.value_of(KEY_PARAM).unwrap();
     let out_file = args.value_of(OUT_PARAM).unwrap();
 
-     match args.value_of(PLAIN_PARAM).map(|fname| CryptOp::Encrypt(fname)).unwrap_or_else(|| {
+    enum CryptOp<'a> {
+        Encrypt(&'a str),
+        Decrypt(&'a str),
+    }
+
+    match args.value_of(PLAIN_PARAM).map(|fname| CryptOp::Encrypt(fname)).unwrap_or_else(|| {
          args.value_of(CIPHER_PARAM).map(|fname| CryptOp::Decrypt(fname)).unwrap()
-    }){
+    })
+    {
         CryptOp::Encrypt(fname) => {
             crypt(fname, out_file, key_file, |p, k| {
                 *p = (*p).wrapping_add(*k);  
@@ -92,5 +94,7 @@ fn main() {
                 *c = (*c).wrapping_sub(*k);
             })
         },
-    }.map_err(|e| format!("File I/O error on file \"{}\", Error Message \"{}\"", e.1, e.0)).unwrap();
+    }
+    .map_err(|e| format!("File I/O error on file \"{}\", Error Message \"{}\"", e.1, e.0))
+    .unwrap();
 }
